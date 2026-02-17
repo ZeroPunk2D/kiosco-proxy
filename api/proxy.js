@@ -1,5 +1,5 @@
 // api/proxy.js
-// api/proxy.js
+import { Readable } from 'stream'; // Importar Readable para Node.js streaming
 
 export default async function handler(request, response) {
   // 1. Obtener la URL de destino desde el parámetro ?target=
@@ -95,22 +95,22 @@ export default async function handler(request, response) {
       // Para cualquier otro tipo de contenido (JSON, CSS, JS, etc.), lo transmitimos directamente.
       console.log(`PROXY: Pasando contenido de tipo '${contentType}' sin modificar.`);
       
-      // Creamos un nuevo objeto Headers para nuestra respuesta
-      const headers = new Headers();
-      // Copiamos los headers originales, excluyendo Content-Encoding y Transfer-Encoding
+      response.status(originResponse.status);
       originResponse.headers.forEach((value, key) => {
-        if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding') {
-          headers.append(key, value);
+        // Excluir headers que Node.js/Vercel manejan automáticamente o que causan problemas
+        if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding' && key.toLowerCase() !== 'connection') {
+          response.setHeader(key, value);
         }
       });
       
-      // Devolvemos una nueva Response con el body original y los headers/status correctos.
-      // Esto es la forma correcta de hacer streaming en Vercel Edge Functions.
-      return new Response(originResponse.body, {
-        status: originResponse.status,
-        statusText: originResponse.statusText,
-        headers: headers,
-      });
+      // Convertir el ReadableStream Web al ReadableStream de Node.js y luego hacer pipe.
+      // Esto es crucial para el streaming de datos correctamente en funciones Serverless de Vercel.
+      if (originResponse.body) {
+        const nodeReadable = Readable.fromWeb(originResponse.body);
+        nodeReadable.pipe(response);
+      } else {
+        response.end();
+      }
     }
 
   } catch (error) {
