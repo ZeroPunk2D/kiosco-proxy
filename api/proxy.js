@@ -16,7 +16,20 @@ export default async function handler(request, response) {
     const res = await fetch(targetUrl);
     let body = await res.text();
 
-    // 3. Este es tu script de adaptación. Lo he copiado de tu ViewController.
+    // 3. Crear la URL base desde la URL de destino para arreglar las rutas relativas (CSS, JS, etc.)
+    const originUrl = new URL(targetUrl);
+    const baseUrl = `${originUrl.protocol}//${originUrl.host}`;
+    const baseTag = `<base href="${baseUrl}">`;
+
+    // 4. Inyectar la etiqueta <base> en el <head> del HTML
+    if (body.includes('<head>')) {
+      body = body.replace('<head>', `<head>\n    ${baseTag}`);
+    } else {
+      // Si no hay <head>, se añade al principio (menos ideal, pero funciona como fallback)
+      body = baseTag + body;
+    }
+
+    // 5. Este es tu script de adaptación.
     const scriptKiosco = `
       (function(){
         // --- INICIO CÓDIGO AÑADIDO PARA BLOQUEAR LLAMADA LOCAL ---
