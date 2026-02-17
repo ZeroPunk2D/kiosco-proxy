@@ -37,25 +37,22 @@ export default async function handler(request, response) {
         window.fetch = function(...args) {
             const url = args[0];
             if (typeof url === 'string' && url.includes('http://localhost:9000/api/empresa')) {
-                console.log('Bloqueando fetch() a la red local:', url);
+                console.log('PROXY: Bloqueando fetch() a la red local:', url);
                 return Promise.reject(new Error('Llamada a red local bloqueada por el proxy.'));
             }
             return originalFetch.apply(this, args);
         };
 
+        // Versión simplificada y más segura para bloquear XMLHttpRequest
         const originalXhrOpen = XMLHttpRequest.prototype.open;
-        const originalXhrSend = XMLHttpRequest.prototype.send;
         XMLHttpRequest.prototype.open = function(method, url, ...args) {
-            this._targetUrl = url;
-            return originalXhrOpen.apply(this, [method, url, ...args]);
-        };
-        XMLHttpRequest.prototype.send = function(...args) {
-            if (typeof this._targetUrl === 'string' && this._targetUrl.includes('http://localhost:9000/api/empresa')) {
-                console.log('Bloqueando XMLHttpRequest.send() a la red local:', this._targetUrl);
-                this.dispatchEvent(new ProgressEvent('error'));
-                return;
+            if (typeof url === 'string' && url.includes('http://localhost:9000/api/empresa')) {
+                console.log('PROXY: Bloqueando XMLHttpRequest.open() a la red local:', url);
+                // Al lanzar un error aquí, prevenimos que 'send' se llame y la solicitud falle inmediatamente.
+                // Esto es más limpio y tiene menos efectos secundarios que sobreescribir 'send'.
+                throw new Error('XHR a red local bloqueada por el proxy.');
             }
-            return originalXhrSend.apply(this, args);
+            return originalXhrOpen.apply(this, [method, url, ...args]);
         };
         // --- FIN CÓDIGO AÑADIDO PARA BLOQUEAR LLAMADA LOCAL ---
         function ajustarKiosco(){
