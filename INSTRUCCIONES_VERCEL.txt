@@ -1,0 +1,45 @@
+# INSTRUCCIONES PARA DESPLEGAR TU TRADUCTOR WEB EN VERCEL
+
+Sigue estos pasos para poner en línea el "traductor" de páginas web que hemos creado. Una vez hecho esto, tu app de iOS podrá usarlo.
+
+**¡Importante!** Necesitarás una cuenta de GitHub, GitLab o Bitbucket para esto. Si no tienes una, créala primero.
+
+---
+
+**Paso 1: Preparar tus archivos**
+
+1.  Asegúrate de que tienes estos dos archivos en una carpeta (por ejemplo, `mi-kiosco-proxy`) en tu computadora:
+    *   `vercel.json`
+    *   La carpeta `api/` que contiene `proxy.js` (es decir, `mi-kiosco-proxy/api/proxy.js`)
+
+**Paso 2: Crear un repositorio en GitHub (o GitLab/Bitbucket)**
+
+1.  Ve a [GitHub](https://github.com/), [GitLab](https://gitlab.com/) o [Bitbucket](https://bitbucket.org/) e inicia sesión.
+2.  Crea un **nuevo repositorio privado**. Puedes llamarlo `kiosco-proxy` o como prefieras.
+3.  Sube los archivos que preparaste (`vercel.json` y la carpeta `api/`) a este nuevo repositorio. Puedes hacerlo usando la interfaz web del repositorio (arrastrar y soltar) o con Git si estás familiarizado.
+
+**Paso 3: Desplegar en Vercel**
+
+1.  Ve a [Vercel](https://vercel.com/) e inicia sesión (si no tienes cuenta, puedes registrarte usando tu cuenta de GitHub/GitLab/Bitbucket).
+2.  Una vez dentro, haz clic en **"Add New..."** y luego en **"Project"**.
+3.  **"Import Git Repository"**: Conecta tu proveedor de Git (GitHub, GitLab o Bitbucket) y selecciona el repositorio que acabas de crear (`kiosco-proxy`).
+4.  **"Configure Project"**:
+    *   **Root Directory:** Si los archivos (`vercel.json` y `api/`) están en la raíz de tu repositorio, deja esto vacío. Si los subiste dentro de una subcarpeta (ej: `my-proxy-project`), entonces pon `my-proxy-project` aquí.
+    *   Vercel detectará automáticamente que es una función Serverless. No necesitas cambiar nada más.
+5.  Haz clic en **"Deploy"**.
+
+**Paso 4: Obtener la URL de tu traductor**
+
+1.  Después de unos segundos, Vercel desplegará tu proyecto. Verás una pantalla de "Congratulations!"
+2.  Busca la sección **"Domains"** o **"Visit"**. Allí encontrarás la URL de tu proyecto, que será algo parecido a:
+    `https://nombre-de-tu-proyecto.vercel.app`
+3.  La URL completa de tu traductor será:
+    `https://nombre-de-tu-proyecto.vercel.app/api/proxy`
+
+**Guarda esta URL.** La necesitarás para el siguiente paso en tu aplicación iOS.
+
+---
+
+**Siguiente Paso (en tu máquina con Xcode):**
+
+Una vez que tengas la URL de Vercel, deberás modificar tu archivo `ViewController.swift` (o `ViewController.txt` en tu caso) en tu proyecto de Xcode, como te mostré anteriormente. Me dices cuando estés listo para esa parte.

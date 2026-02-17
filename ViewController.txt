@@ -1,0 +1,391 @@
+import UIKit
+import WebKit
+import CoreImage.CIFilterBuiltins
+
+class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
+
+    var webView: WKWebView!
+    var topBar: UIView!
+    var loading = UIActivityIndicatorView(style: .large)
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        view.backgroundColor = .white
+
+        crearMenuSuperior()
+        crearWebView()
+        cargarPaginaInicial()
+    }
+
+    // MARK: MENU SUPERIOR
+
+    func crearMenuSuperior() {
+
+        topBar = UIView()
+        topBar.translatesAutoresizingMaskIntoConstraints = false
+        topBar.backgroundColor = .black
+        view.addSubview(topBar)
+
+        NSLayoutConstraint.activate([
+            topBar.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor),
+            topBar.leftAnchor.constraint(equalTo: view.leftAnchor),
+            topBar.rightAnchor.constraint(equalTo: view.rightAnchor),
+            topBar.heightAnchor.constraint(equalToConstant: 60)
+        ])
+
+        let titulo = UILabel()
+        titulo.text = "Olin Mixtli"
+        titulo.textColor = .white
+        titulo.font = UIFont.boldSystemFont(ofSize: 22)
+        titulo.translatesAutoresizingMaskIntoConstraints = false
+        topBar.addSubview(titulo)
+
+        // BOTON QR
+        let btnQR = UIButton(type: .system)
+        btnQR.setImage(UIImage(systemName: "qrcode"), for: .normal)
+        btnQR.tintColor = .white
+        btnQR.translatesAutoresizingMaskIntoConstraints = false
+        btnQR.addTarget(self, action: #selector(mostrarQR), for: .touchUpInside)
+        topBar.addSubview(btnQR)
+
+        // BOTON CONFIG
+        let btnConfig = UIButton(type: .system)
+        btnConfig.setImage(UIImage(systemName: "gearshape.fill"), for: .normal)
+        btnConfig.tintColor = .white
+        btnConfig.translatesAutoresizingMaskIntoConstraints = false
+        btnConfig.addTarget(self, action: #selector(abrirConfig), for: .touchUpInside)
+        topBar.addSubview(btnConfig)
+
+        NSLayoutConstraint.activate([
+            titulo.centerXAnchor.constraint(equalTo: topBar.centerXAnchor),
+            titulo.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+
+            btnQR.leadingAnchor.constraint(equalTo: topBar.leadingAnchor, constant: 20),
+            btnQR.centerYAnchor.constraint(equalTo: topBar.centerYAnchor),
+
+            btnConfig.trailingAnchor.constraint(equalTo: topBar.trailingAnchor, constant: -20),
+            btnConfig.centerYAnchor.constraint(equalTo: topBar.centerYAnchor)
+        ])
+    }
+
+    // MARK: WEBVIEW (SIN CAMBIOS)
+
+    func crearWebView() {
+
+        let config = WKWebViewConfiguration()
+        config.allowsInlineMediaPlayback = true
+
+        let contentController = WKUserContentController()
+
+        let scriptKiosco = """
+        (function(){
+
+            function ajustarKiosco(){
+
+                if(!document.querySelector('meta[name=viewport]')){
+                    var meta = document.createElement('meta');
+                    meta.name='viewport';
+                    meta.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                    document.head.appendChild(meta);
+                }
+
+                var contenedor = document.getElementById("contenedor");
+                if(contenedor){
+                    contenedor.style.width="100%";
+                    contenedor.style.maxWidth="100vw";
+                    contenedor.style.margin="0 auto";
+                    contenedor.style.transform="scale(0.92)";
+                    contenedor.style.transformOrigin="top center";
+                }
+
+                var contenido = document.getElementById("contenidoPagKiosco");
+                if(contenido){
+                    contenido.style.width="95%";
+                    contenido.style.margin="0 auto";
+                    contenido.style.left="0";
+                }
+
+                var botones = document.querySelectorAll(".botones");
+                botones.forEach(function(b){
+                    b.style.fontSize="18px";
+                    b.style.padding="10px 15px";
+                });
+
+                var inputs = document.querySelectorAll("input[type=button], button, .botones");
+                inputs.forEach(function(btn){
+                    btn.style.color = "#ffffff";
+                    btn.style.webkitTextFillColor = "#ffffff";
+                    btn.style.opacity = "1";
+                    btn.style.visibility = "visible";
+                });
+
+                var dialogs=document.querySelectorAll(".ui-dialog");
+                dialogs.forEach(function(d){
+                    d.style.width="95vw";
+                    d.style.maxWidth="95vw";
+                    d.style.left="50%";
+                    d.style.transform="translateX(-50%)";
+                });
+
+                var objs=document.querySelectorAll(".ui-dialog-content object");
+                objs.forEach(function(o){
+                    o.style.width="100%";
+                    o.style.height="70vh";
+                });
+            }
+
+            setInterval(ajustarKiosco,800);
+
+        })();
+        """
+
+        let userScript = WKUserScript(
+            source: scriptKiosco,
+            injectionTime: .atDocumentEnd,
+            forMainFrameOnly: true)
+
+        contentController.addUserScript(userScript)
+        config.userContentController = contentController
+
+        webView = WKWebView(frame: .zero, configuration: config)
+        webView.navigationDelegate = self
+        webView.uiDelegate = self
+
+        webView.customUserAgent =
+        "Mozilla/5.0 (iPad; CPU OS 15_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/15.0 Mobile/15E148 Safari/604.1"
+
+        webView.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(webView)
+
+        NSLayoutConstraint.activate([
+            webView.topAnchor.constraint(equalTo: topBar.bottomAnchor),
+            webView.leftAnchor.constraint(equalTo: view.leftAnchor),
+            webView.rightAnchor.constraint(equalTo: view.rightAnchor),
+            webView.bottomAnchor.constraint(equalTo: view.bottomAnchor)
+        ])
+
+        loading.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(loading)
+
+        NSLayoutConstraint.activate([
+            loading.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            loading.centerYAnchor.constraint(equalTo: view.centerYAnchor)
+        ])
+    }
+
+    func cargarPaginaInicial() {
+
+        let urlGuardada = UserDefaults.standard.string(forKey: "urlInicio") ?? "https://olinweb.net/kiosco_login.php"
+
+        if let url = URL(string: urlGuardada) {
+            webView.load(URLRequest(url: url))
+        }
+    }
+
+    // MARK: QR
+
+    @objc func mostrarQR() {
+
+        guard let urlActual = webView.url?.absoluteString else {
+
+            let alert = UIAlertController(title: "QR",
+                                          message: "No hay página cargada aún",
+                                          preferredStyle: .alert)
+
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+
+            present(alert, animated: true)
+
+            return
+        }
+
+        if let qrImage = generarQR(texto: urlActual) {
+            mostrarQRPopup(imagen: qrImage)
+        }
+    }
+
+    func generarQR(texto: String) -> UIImage? {
+
+        let data = texto.data(using: .ascii)
+
+        if let filter = CIFilter(name: "CIQRCodeGenerator") {
+
+            filter.setValue(data, forKey: "inputMessage")
+
+            if let output = filter.outputImage {
+
+                let transform = CGAffineTransform(scaleX: 10, y: 10)
+
+                let img = output.transformed(by: transform)
+
+                return UIImage(ciImage: img)
+            }
+        }
+
+        return nil
+    }
+
+    // MARK: POPUP QR MEJORADO (ESTILO PROFESIONAL)
+
+    func mostrarQRPopup(imagen: UIImage) {
+
+    // Crear ViewController popup
+    let popupVC = UIViewController()
+    popupVC.modalPresentationStyle = .overFullScreen
+    popupVC.view.backgroundColor = UIColor.black.withAlphaComponent(0.6)
+
+    // Contenedor blanco
+    let contenedor = UIView()
+    contenedor.backgroundColor = .white
+    contenedor.layer.cornerRadius = 12
+    contenedor.translatesAutoresizingMaskIntoConstraints = false
+    popupVC.view.addSubview(contenedor)
+
+    NSLayoutConstraint.activate([
+        contenedor.centerXAnchor.constraint(equalTo: popupVC.view.centerXAnchor),
+        contenedor.centerYAnchor.constraint(equalTo: popupVC.view.centerYAnchor),
+        contenedor.widthAnchor.constraint(equalToConstant: 300)
+    ])
+
+    // Título
+    let titulo = UILabel()
+    titulo.text = "Escanea el Código"
+    titulo.textAlignment = .center
+    titulo.font = UIFont.boldSystemFont(ofSize: 18)
+    titulo.translatesAutoresizingMaskIntoConstraints = false
+    contenedor.addSubview(titulo)
+
+    NSLayoutConstraint.activate([
+        titulo.topAnchor.constraint(equalTo: contenedor.topAnchor, constant: 20),
+        titulo.leadingAnchor.constraint(equalTo: contenedor.leadingAnchor),
+        titulo.trailingAnchor.constraint(equalTo: contenedor.trailingAnchor),
+        titulo.heightAnchor.constraint(equalToConstant: 30)
+    ])
+
+    var ultimoElemento: UIView = titulo
+
+    // Obtener empresaID
+    if let empresaID = UserDefaults.standard.string(forKey: "empresaID"),
+       !empresaID.trimmingCharacters(in: .whitespaces).isEmpty {
+
+        let lblEmpresa = UILabel()
+        lblEmpresa.text = "Ingresa la empresa: \(empresaID)"
+        lblEmpresa.textAlignment = .center
+        lblEmpresa.font = UIFont.systemFont(ofSize: 16)
+        lblEmpresa.textColor = .darkGray
+        lblEmpresa.translatesAutoresizingMaskIntoConstraints = false
+        contenedor.addSubview(lblEmpresa)
+
+        NSLayoutConstraint.activate([
+            lblEmpresa.topAnchor.constraint(equalTo: ultimoElemento.bottomAnchor, constant: 10),
+            lblEmpresa.leadingAnchor.constraint(equalTo: contenedor.leadingAnchor, constant: 10),
+            lblEmpresa.trailingAnchor.constraint(equalTo: contenedor.trailingAnchor, constant: -10),
+            lblEmpresa.heightAnchor.constraint(equalToConstant: 30)
+        ])
+
+        ultimoElemento = lblEmpresa
+    }
+
+    // Imagen QR
+    let imageView = UIImageView(image: imagen)
+    imageView.contentMode = .scaleAspectFit
+    imageView.translatesAutoresizingMaskIntoConstraints = false
+    contenedor.addSubview(imageView)
+
+    NSLayoutConstraint.activate([
+        imageView.topAnchor.constraint(equalTo: ultimoElemento.bottomAnchor, constant: 15),
+        imageView.centerXAnchor.constraint(equalTo: contenedor.centerXAnchor),
+        imageView.widthAnchor.constraint(equalToConstant: 200),
+        imageView.heightAnchor.constraint(equalToConstant: 200)
+    ])
+
+    ultimoElemento = imageView
+
+    // Botón cerrar
+    let btnCerrar = UIButton(type: .system)
+    btnCerrar.setTitle("Cerrar", for: .normal)
+    btnCerrar.titleLabel?.font = UIFont.systemFont(ofSize: 18)
+    btnCerrar.translatesAutoresizingMaskIntoConstraints = false
+    btnCerrar.addTarget(self, action: #selector(cerrarPopupQR), for: .touchUpInside)
+    contenedor.addSubview(btnCerrar)
+
+    NSLayoutConstraint.activate([
+        btnCerrar.topAnchor.constraint(equalTo: ultimoElemento.bottomAnchor, constant: 15),
+        btnCerrar.centerXAnchor.constraint(equalTo: contenedor.centerXAnchor),
+        btnCerrar.bottomAnchor.constraint(equalTo: contenedor.bottomAnchor, constant: -20),
+        btnCerrar.heightAnchor.constraint(equalToConstant: 40)
+    ])
+
+    // Mostrar popup
+    present(popupVC, animated: true)
+}
+
+
+// Función cerrar popup
+@objc func cerrarPopupQR() {
+    dismiss(animated: true)
+}
+
+
+    // MARK: CONFIG
+
+    @objc func abrirConfig() {
+
+        let alert = UIAlertController(title: "Configuración",
+                                      message: "Ingrese contraseña",
+                                      preferredStyle: .alert)
+
+        alert.addTextField { $0.isSecureTextEntry = true }
+
+        let entrar = UIAlertAction(title: "Entrar", style: .default) { _ in
+
+            let pass = alert.textFields?.first?.text ?? ""
+
+            if pass == "Olinkey" {
+
+                let vc = ConfigViewController()
+
+                vc.modalPresentationStyle = .fullScreen
+
+                self.present(vc, animated: true)
+            }
+        }
+
+        alert.addAction(entrar)
+
+        alert.addAction(UIAlertAction(title: "Cancelar", style: .cancel))
+
+        present(alert, animated: true)
+    }
+
+    // MARK: LOADING
+
+    func webView(_ webView: WKWebView, didStartProvisionalNavigation navigation: WKNavigation!) {
+
+        loading.startAnimating()
+    }
+
+    func webView(_ webView: WKWebView, didFinish navigation: WKNavigation!) {
+
+        loading.stopAnimating()
+    }
+
+    func webView(_ webView: WKWebView,
+                 runJavaScriptTextInputPanelWithPrompt prompt: String,
+                 defaultText: String?,
+                 initiatedByFrame frame: WKFrameInfo,
+                 completionHandler: @escaping (String?) -> Void) {
+
+        let alert = UIAlertController(title: nil, message: prompt, preferredStyle: .alert)
+
+        alert.addTextField { $0.text = defaultText }
+
+        alert.addAction(UIAlertAction(title: "OK", style: .default) { _ in
+
+            completionHandler(alert.textFields?.first?.text)
+        })
+
+        present(alert, animated: true)
+    }
+}
