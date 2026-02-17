@@ -1,5 +1,5 @@
 // api/proxy.js
-import { Writable } from 'stream';
+// api/proxy.js
 
 export default async function handler(request, response) {
   // 1. Obtener la URL de destino desde el parámetro ?target=
@@ -95,18 +95,22 @@ export default async function handler(request, response) {
       // Para cualquier otro tipo de contenido (JSON, CSS, JS, etc.), lo transmitimos directamente.
       console.log(`PROXY: Pasando contenido de tipo '${contentType}' sin modificar.`);
       
-      response.status(originResponse.status);
+      // Creamos un nuevo objeto Headers para nuestra respuesta
+      const headers = new Headers();
+      // Copiamos los headers originales, excluyendo Content-Encoding y Transfer-Encoding
       originResponse.headers.forEach((value, key) => {
-        response.setHeader(key, value);
+        if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding') {
+          headers.append(key, value);
+        }
       });
       
-      // Node.js 18+ fetch body is a ReadableStream, we can pipe it.
-      if (originResponse.body) {
-        const writable = Writable.fromWeb(response);
-        originResponse.body.pipeTo(writable);
-      } else {
-        response.end();
-      }
+      // Devolvemos una nueva Response con el body original y los headers/status correctos.
+      // Esto es la forma correcta de hacer streaming en Vercel Edge Functions.
+      return new Response(originResponse.body, {
+        status: originResponse.status,
+        statusText: originResponse.statusText,
+        headers: headers,
+      });
     }
 
   } catch (error) {
