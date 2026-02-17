@@ -1,4 +1,5 @@
 // api/proxy.js
+import { Writable } from 'stream';
 
 export default async function handler(request, response) {
   // 1. Obtener la URL de destino desde el parámetro ?target=
@@ -18,22 +19,16 @@ export default async function handler(request, response) {
     // 4. SI ES HTML, lo modificamos. SI NO (ej: JSON, CSS, JS), lo pasamos tal cual.
     if (contentType.includes('text/html')) {
       let body = await originResponse.text();
-
-      // --- INICIO DE MODIFICACIONES SOLO PARA HTML ---
-
-      // Crear las URLs base necesarias para el script de reescritura
       const targetOrigin = new URL(targetUrl).origin;
       const proxyUrl = `https://${request.headers.host}/api/proxy`;
-
-      // Inyectar la etiqueta <base> para arreglar rutas relativas de assets (CSS, etc.)
       const baseTag = `<base href="${targetOrigin}">`;
+
       if (body.includes('<head>')) {
         body = body.replace('<head>', `<head>\n    ${baseTag}`);
       } else {
         body = baseTag + body;
       }
 
-      // Script final y definitivo que será inyectado.
       const scriptKiosco = `
         (function(){
           const proxyUrl = '${proxyUrl}';
@@ -88,35 +83,34 @@ export default async function handler(request, response) {
         })();
       `;
 
-      // Inyectar el script final antes del cierre del body
       const scriptTag = `<script>${scriptKiosco}</script>`;
       if (body.includes('</body>')) {
         body = body.replace('</body>', `${scriptTag}</body>`);
       } else {
         body += scriptTag;
       }
-
-      // Devolver el HTML modificado
-      return response.status(200).setHeader('Content-Type', 'text/html').send(body);
-      
-      // --- FIN DE MODIFICACIONES SOLO PARA HTML ---
+      response.status(200).setHeader('Content-Type', 'text/html').send(body);
 
     } else {
-      // Para cualquier otro tipo de contenido (JSON, CSS, JS, etc.), simplemente lo devolvemos tal cual.
-      // Esto evita contaminar el JSON y otros assets.
+      // Para cualquier otro tipo de contenido (JSON, CSS, JS, etc.), lo transmitimos directamente.
       console.log(`PROXY: Pasando contenido de tipo '${contentType}' sin modificar.`);
       
-      // Copiamos los headers originales a la respuesta que enviaremos
-      for (const [key, value] of originResponse.headers.entries()) {
+      response.status(originResponse.status);
+      originResponse.headers.forEach((value, key) => {
         response.setHeader(key, value);
-      }
+      });
       
-      // Devolvemos el cuerpo original y el status code original
-      return response.status(originResponse.status).send(originResponse.body);
+      // Node.js 18+ fetch body is a ReadableStream, we can pipe it.
+      if (originResponse.body) {
+        const writable = Writable.fromWeb(response);
+        originResponse.body.pipeTo(writable);
+      } else {
+        response.end();
+      }
     }
 
   } catch (error) {
     console.error(error);
-    return response.status(500).send(`Error en el proxy: ${error.message}`);
+    response.status(500).send(`Error en el proxy: ${error.message}`);
   }
 }
