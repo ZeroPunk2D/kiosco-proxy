@@ -10,18 +10,18 @@ export default async function handler(request, response) {
   try {
     const url = new URL(targetUrl);
 
-    // 🔒 Solo permitir HTTPS
+    // 🔒 Solo HTTPS
     if (url.protocol !== "https:") {
       return response.status(403).json({ error: "Solo se permite HTTPS" });
     }
 
-    // 🔒 WHITELIST de dominios
+    // 🔒 Solo dominios permitidos
     const allowedDomains = ["olinweb.net"];
     if (!allowedDomains.includes(url.hostname)) {
       return response.status(403).json({ error: "Dominio no permitido" });
     }
 
-    // ⏳ Timeout de 8 segundos
+    // ⏳ Timeout 8s
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -51,14 +51,61 @@ export default async function handler(request, response) {
 
     let body = await res.text();
 
-    // 🌐 Insertar <base> para que rutas relativas funcionen
+    // 🌐 Insertar <base> para rutas relativas
     const baseTag = `<base href="https://${url.hostname}/">`;
     if (body.includes("<head>")) {
       body = body.replace("<head>", `<head>${baseTag}`);
     }
 
+    // 🔄 Reescribir URLs AJAX/fetch/axios para que pasen por el proxy
+    // Esto intercepta URLs absolutas en JS y las cambia a tu proxy
+    const proxyRewriteScript = `
+      (function(){
+        // intercept fetch
+        const originalFetch = window.fetch;
+        window.fetch = function(input, init) {
+          let url = (typeof input === 'string') ? input : input.url;
+          if(url.startsWith("http://") || url.startsWith("https://")) {
+            const parsed = new URL(url);
+            if(["${allowedDomains.join('","')}"].includes(parsed.hostname)){
+              url = "/api/proxy?target=" + encodeURIComponent(url);
+              if(typeof input === 'string'){
+                input = url;
+              } else {
+                input = new Request(url, input);
+              }
+            }
+          }
+          return originalFetch(input, init);
+        };
+
+        // intercept axios (si existe)
+        if(window.axios){
+          const originalAxios = window.axios;
+          window.axios = function(config){
+            if(typeof config === 'string'){
+              let parsed = new URL(config, window.location.href);
+              if(["${allowedDomains.join('","')}"].includes(parsed.hostname)){
+                config = "/api/proxy?target=" + encodeURIComponent(parsed.href);
+              }
+            } else if(config.url){
+              const parsed = new URL(config.url, window.location.href);
+              if(["${allowedDomains.join('","')}"].includes(parsed.hostname)){
+                config.url = "/api/proxy?target=" + encodeURIComponent(parsed.href);
+              }
+            }
+            return originalAxios(config);
+          };
+          // copiar métodos como get/post/etc.
+          ["get","post","put","delete","patch","head"].forEach(m=>{
+            window.axios[m] = originalAxios[m];
+          });
+        }
+      })();
+    `;
+
     // 🎯 Script kiosco optimizado
-    const scriptKiosco = `
+    const kioscoScript = `
       (function(){
         function ajustar(){
           if(!document.querySelector('meta[name=viewport]')){
@@ -77,36 +124,32 @@ export default async function handler(request, response) {
           }
         }
 
-        // Ejecutar al cargar
         ajustar();
 
-        // Detectar cambios dinámicos en el DOM
         const observer = new MutationObserver(ajustar);
         observer.observe(document.body, { childList:true, subtree:true });
       })();
     `;
 
-    const scriptTag = `<script>${scriptKiosco}</script>`;
+    const finalScript = `<script>${proxyRewriteScript}${kioscoScript}</script>`;
 
-    if (body.includes("</body>")) {
-      body = body.replace("</body>", `${scriptTag}</body>`);
+    if(body.includes("</body>")){
+      body = body.replace("</body>", `${finalScript}</body>`);
     } else {
-      body += scriptTag;
+      body += finalScript;
     }
 
-    // 🔧 Devolver HTML
     response.setHeader("Content-Type", "text/html; charset=utf-8");
     return response.status(200).send(body);
 
-  } catch (err) {
+  } catch(err){
     console.error("Proxy error:", err.message);
-
     return response.status(500).json({
-      error: {
-        code: "PROXY_ERROR",
-        message: "No se pudo acceder al target.",
-        details: err.message,
-      },
+      error:{
+        code:"PROXY_ERROR",
+        message:"No se pudo acceder al target.",
+        details: err.message
+      }
     });
   }
 }
