@@ -9,115 +9,111 @@ export default async function handler(request, response) {
   }
 
   try {
-    // 2. Cargar el contenido de la página web de destino
-    // La petición desde el servidor de Vercel no tiene problemas de CORS.
-    const res = await fetch(targetUrl);
-    let body = await res.text();
+    // 2. Cargar la respuesta desde la URL de destino
+    const originResponse = await fetch(targetUrl);
 
-    // 3. Crear las URLs base necesarias para el script de reescritura
-    const targetOriginUrl = new URL(targetUrl);
-    const targetOrigin = `${targetOriginUrl.protocol}//${targetOriginUrl.host}`;
-    
-    // La URL de este mismo proxy
-    const proxyUrl = `https://${request.headers.host}/api/proxy`;
+    // 3. Revisar el tipo de contenido de la respuesta
+    const contentType = originResponse.headers.get('content-type') || '';
 
-    // 4. Inyectar la etiqueta <base> para arreglar rutas relativas de assets (CSS, etc.)
-    const baseTag = `<base href="${targetOrigin}">`;
-    if (body.includes('<head>')) {
-      body = body.replace('<head>', `<head>\n    ${baseTag}`);
+    // 4. SI ES HTML, lo modificamos. SI NO (ej: JSON, CSS, JS), lo pasamos tal cual.
+    if (contentType.includes('text/html')) {
+      let body = await originResponse.text();
+
+      // --- INICIO DE MODIFICACIONES SOLO PARA HTML ---
+
+      // Crear las URLs base necesarias para el script de reescritura
+      const targetOrigin = new URL(targetUrl).origin;
+      const proxyUrl = `https://${request.headers.host}/api/proxy`;
+
+      // Inyectar la etiqueta <base> para arreglar rutas relativas de assets (CSS, etc.)
+      const baseTag = `<base href="${targetOrigin}">`;
+      if (body.includes('<head>')) {
+        body = body.replace('<head>', `<head>\n    ${baseTag}`);
+      } else {
+        body = baseTag + body;
+      }
+
+      // Script final y definitivo que será inyectado.
+      const scriptKiosco = `
+        (function(){
+          const proxyUrl = '${proxyUrl}';
+          const targetOrigin = '${targetOrigin}';
+
+          function rewriteUrl(originalUrl) {
+              if (!originalUrl) return originalUrl;
+              if (originalUrl.includes('//localhost')) {
+                  console.log('PROXY: Bloqueando llamada a red local:', originalUrl);
+                  return null;
+              }
+              const absoluteUrl = new URL(originalUrl, targetOrigin).toString();
+              if (absoluteUrl.startsWith(targetOrigin)) {
+                  const newUrl = \`\${proxyUrl}?target=\${encodeURIComponent(absoluteUrl)}\`;
+                  console.log('PROXY: Reescribiendo URL para evitar CORS: ', originalUrl);
+                  return newUrl;
+              }
+              return absoluteUrl;
+          }
+
+          const originalFetch = window.fetch;
+          window.fetch = function(url, options) {
+              const newUrl = rewriteUrl(url);
+              if (newUrl === null) return Promise.reject(new Error('Llamada a red local bloqueada por el proxy.'));
+              return originalFetch.call(this, newUrl, options);
+          };
+
+          const originalXhrOpen = XMLHttpRequest.prototype.open;
+          XMLHttpRequest.prototype.open = function(method, url, ...args) {
+              const newUrl = rewriteUrl(url);
+              if (newUrl === null) throw new Error('XHR a red local bloqueada por el proxy.');
+              return originalXhrOpen.apply(this, [method, newUrl, ...args]);
+          };
+          
+          function ajustarKiosco(){
+              if(!document.querySelector('meta[name=viewport]')){
+                  var meta = document.createElement('meta');
+                  meta.name='viewport';
+                  meta.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
+                  document.head.appendChild(meta);
+              }
+              var contenedor = document.getElementById("contenedor");
+              if(contenedor){ contenedor.style.cssText += 'width:100%; max-width:100vw; margin:0 auto; transform:scale(0.92); transform-origin:top center;'; }
+              var contenido = document.getElementById("contenidoPagKiosco");
+              if(contenido){ contenido.style.cssText += 'width:95%; margin:0 auto; left:0;'; }
+              document.querySelectorAll(".botones").forEach(b => b.style.cssText += 'font-size:18px; padding:10px 15px;');
+              document.querySelectorAll("input[type=button], button, .botones").forEach(btn => btn.style.cssText += 'color:#ffffff; -webkit-text-fill-color:#ffffff; opacity:1; visibility:visible;');
+              document.querySelectorAll(".ui-dialog").forEach(d => d.style.cssText += 'width:95vw; max-width:95vw; left:50%; transform:translateX(-50%);');
+              document.querySelectorAll(".ui-dialog-content object").forEach(o => o.style.cssText += 'width:100%; height:70vh;');
+          }
+          setInterval(ajustarKiosco, 800);
+        })();
+      `;
+
+      // Inyectar el script final antes del cierre del body
+      const scriptTag = `<script>${scriptKiosco}</script>`;
+      if (body.includes('</body>')) {
+        body = body.replace('</body>', `${scriptTag}</body>`);
+      } else {
+        body += scriptTag;
+      }
+
+      // Devolver el HTML modificado
+      return response.status(200).setHeader('Content-Type', 'text/html').send(body);
+      
+      // --- FIN DE MODIFICACIONES SOLO PARA HTML ---
+
     } else {
-      body = baseTag + body;
+      // Para cualquier otro tipo de contenido (JSON, CSS, JS, etc.), simplemente lo devolvemos tal cual.
+      // Esto evita contaminar el JSON y otros assets.
+      console.log(`PROXY: Pasando contenido de tipo '${contentType}' sin modificar.`);
+      
+      // Copiamos los headers originales a la respuesta que enviaremos
+      for (const [key, value] of originResponse.headers.entries()) {
+        response.setHeader(key, value);
+      }
+      
+      // Devolvemos el cuerpo original y el status code original
+      return response.status(originResponse.status).send(originResponse.body);
     }
-
-    // 5. Script final y definitivo que será inyectado.
-    // Incluye: Bloqueo de red local, reescritura de URLs para evitar CORS, y ajustes de estilo.
-    const scriptKiosco = `
-      (function(){
-        const proxyUrl = '${proxyUrl}';
-        const targetOrigin = '${targetOrigin}';
-
-        // --- FUNCIÓN CENTRAL DE REESCRITURA DE URLS ---
-        function rewriteUrl(originalUrl) {
-            if (!originalUrl) return originalUrl;
-
-            // Bloquear llamadas a la red local
-            if (originalUrl.includes('//localhost')) {
-                console.log('PROXY: Bloqueando llamada a red local:', originalUrl);
-                return null; // Devuelve null para indicar que debe ser bloqueada
-            }
-
-            // Convertir URL relativa (ej: /dataKiosco.php) en absoluta
-            const absoluteUrl = new URL(originalUrl, targetOrigin).toString();
-
-            // Si la URL pertenece al dominio de destino, reescribirla para que pase por el proxy.
-            // Si no, se deja intacta (ej: llamadas a google-analytics, etc.)
-            if (absoluteUrl.startsWith(targetOrigin)) {
-                const newUrl = \`\${proxyUrl}?target=\${encodeURIComponent(absoluteUrl)}\`;
-                console.log('PROXY: Reescribiendo URL para evitar CORS: ', originalUrl, '->', newUrl);
-                return newUrl;
-            }
-
-            return absoluteUrl;
-        }
-
-        // --- INTERCEPTOR PARA 'FETCH' ---
-        const originalFetch = window.fetch;
-        window.fetch = function(url, options) {
-            const newUrl = rewriteUrl(url);
-            if (newUrl === null) {
-                return Promise.reject(new Error('Llamada a red local bloqueada por el proxy.'));
-            }
-            return originalFetch.call(this, newUrl, options);
-        };
-
-        // --- INTERCEPTOR PARA 'XMLHTTPREQUEST' ---
-        const originalXhrOpen = XMLHttpRequest.prototype.open;
-        XMLHttpRequest.prototype.open = function(method, url, ...args) {
-            const newUrl = rewriteUrl(url);
-            if (newUrl === null) {
-                // Al lanzar aquí, la petición muere antes de empezar.
-                throw new Error('XHR a red local bloqueada por el proxy.');
-            }
-            // Guardamos la URL reescrita para usarla en 'send' si fuera necesario.
-            this._rewrittenUrl = newUrl;
-            return originalXhrOpen.apply(this, [method, newUrl, ...args]);
-        };
-        
-        // --- FUNCIÓN DE AJUSTE DE ESTILOS (sin cambios) ---
-        function ajustarKiosco(){
-            if(!document.querySelector('meta[name=viewport]')){
-                var meta = document.createElement('meta');
-                meta.name='viewport';
-                meta.content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no';
-                document.head.appendChild(meta);
-            }
-            var contenedor = document.getElementById("contenedor");
-            if(contenedor){ contenedor.style.width="100%"; contenedor.style.maxWidth="100vw"; contenedor.style.margin="0 auto"; contenedor.style.transform="scale(0.92)"; contenedor.style.transformOrigin="top center"; }
-            var contenido = document.getElementById("contenidoPagKiosco");
-            if(contenido){ contenido.style.width="95%"; contenido.style.margin="0 auto"; contenido.style.left="0"; }
-            var botones = document.querySelectorAll(".botones");
-            botones.forEach(function(b){ b.style.fontSize="18px"; b.style.padding="10px 15px"; });
-            var inputs = document.querySelectorAll("input[type=button], button, .botones");
-            inputs.forEach(function(btn){ btn.style.color = "#ffffff"; btn.style.webkitTextFillColor = "#ffffff"; btn.style.opacity = "1"; btn.style.visibility = "visible"; });
-            var dialogs=document.querySelectorAll(".ui-dialog");
-            dialogs.forEach(function(d){ d.style.width="95vw"; d.style.maxWidth="95vw"; d.style.left="50%"; d.style.transform="translateX(-50%)"; });
-            var objs=document.querySelectorAll(".ui-dialog-content object");
-            objs.forEach(function(o){ o.style.width="100%"; o.style.height="70vh"; });
-        }
-        setInterval(ajustarKiosco, 800);
-      })();
-    `;
-
-    // 6. Inyectar el script final antes del cierre del body
-    const scriptTag = `<script>${scriptKiosco}</script>`;
-    if (body.includes('</body>')) {
-      body = body.replace('</body>', `${scriptTag}</body>`);
-    } else {
-      body += scriptTag;
-    }
-
-    // 7. Devolver el HTML modificado
-    return response.status(200).setHeader('Content-Type', 'text/html').send(body);
 
   } catch (error) {
     console.error(error);
