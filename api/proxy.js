@@ -15,13 +15,13 @@ export default async function handler(request, response) {
       return response.status(403).json({ error: "Solo se permite HTTPS" });
     }
 
-    // 🔒 WHITELIST (ajusta según necesites)
+    // 🔒 WHITELIST de dominios
     const allowedDomains = ["olinweb.net"];
     if (!allowedDomains.includes(url.hostname)) {
       return response.status(403).json({ error: "Dominio no permitido" });
     }
 
-    // ⏳ Timeout 8 segundos
+    // ⏳ Timeout de 8 segundos
     const controller = new AbortController();
     const timeout = setTimeout(() => controller.abort(), 8000);
 
@@ -30,7 +30,7 @@ export default async function handler(request, response) {
       headers: {
         "User-Agent": request.headers["user-agent"] || "Mozilla/5.0",
         "Accept": "text/html",
-      }
+      },
     });
 
     clearTimeout(timeout);
@@ -38,34 +38,26 @@ export default async function handler(request, response) {
     if (!res.ok) {
       return response.status(res.status).json({
         error: "Error al acceder al target",
-        status: res.status
+        status: res.status,
       });
     }
 
     const contentType = res.headers.get("content-type") || "";
-
-    // 🔒 Solo HTML
     if (!contentType.includes("text/html")) {
       return response.status(415).json({
-        error: "Solo se permite contenido HTML"
+        error: "Solo se permite contenido HTML",
       });
     }
 
     let body = await res.text();
 
-    // 🌐 Reescribir rutas relativas
-    body = body.replace(/(href|src)="\/(.*?)"/g,
-      `$1="https://${url.hostname}/$2"`
-    );
+    // 🌐 Insertar <base> para que rutas relativas funcionen
+    const baseTag = `<base href="https://${url.hostname}/">`;
+    if (body.includes("<head>")) {
+      body = body.replace("<head>", `<head>${baseTag}`);
+    }
 
-    body = body.replace(/action="(.*?)"/g,
-      (match, p1) => {
-        if (p1.startsWith("http")) return match;
-        return `action="https://${url.hostname}/${p1.replace(/^\//, "")}"`;
-      }
-    );
-
-    // 🎯 Script kiosco optimizado (sin setInterval agresivo)
+    // 🎯 Script kiosco optimizado
     const scriptKiosco = `
       (function(){
         function ajustar(){
@@ -85,8 +77,10 @@ export default async function handler(request, response) {
           }
         }
 
+        // Ejecutar al cargar
         ajustar();
 
+        // Detectar cambios dinámicos en el DOM
         const observer = new MutationObserver(ajustar);
         observer.observe(document.body, { childList:true, subtree:true });
       })();
@@ -100,6 +94,7 @@ export default async function handler(request, response) {
       body += scriptTag;
     }
 
+    // 🔧 Devolver HTML
     response.setHeader("Content-Type", "text/html; charset=utf-8");
     return response.status(200).send(body);
 
@@ -110,8 +105,8 @@ export default async function handler(request, response) {
       error: {
         code: "PROXY_ERROR",
         message: "No se pudo acceder al target.",
-        details: err.message
-      }
+        details: err.message,
+      },
     });
   }
 }
