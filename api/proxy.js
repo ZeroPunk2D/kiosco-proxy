@@ -10,7 +10,27 @@ export default async function handler(request, response) {
   }
 
   try {
-    // 2. Cargar la respuesta desde la URL de destino
+    // Interceptar la petición de popper.js y servirla desde una CDN
+    if (targetUrl === 'https://olinweb.net/libs/bootstrap-4.3.1/popper.js') {
+      console.log('PROXY: Interceptando popper.js y sirviendo desde CDN.');
+      const cdnUrl = 'https://cdn.jsdelivr.net/npm/popper.js@1.14.7/dist/umd/popper.min.js';
+      const cdnResponse = await fetch(cdnUrl);
+
+      response.status(cdnResponse.status);
+      cdnResponse.headers.forEach((value, key) => {
+        if (key.toLowerCase() !== 'content-encoding' && key.toLowerCase() !== 'transfer-encoding' && key.toLowerCase() !== 'connection') {
+          response.setHeader(key, value);
+        }
+      });
+      if (cdnResponse.body) {
+        const nodeReadable = Readable.fromWeb(cdnResponse.body);
+        nodeReadable.pipe(response);
+      } else {
+        response.end();
+      }
+      return; // Importante: terminar la ejecución aquí para no seguir procesando
+    }
+
     const originResponse = await fetch(targetUrl);
 
     // 3. Revisar el tipo de contenido de la respuesta
