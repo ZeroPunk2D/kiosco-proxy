@@ -19,6 +19,20 @@ export default async function handler(request, response) {
     // 3. Este es tu script de adaptación. Lo he copiado de tu ViewController.
     const scriptKiosco = `
       (function(){
+        // --- INICIO CÓDIGO AÑADIDO PARA BLOQUEAR LLAMADA LOCAL ---
+        const originalFetch = window.fetch;
+        window.fetch = function(...args) {
+            const url = args[0];
+            if (typeof url === 'string' && url.includes('http://localhost:9000/api/empresa')) {
+                console.log('Bloqueando llamada a la red local:', url);
+                // Devolver una promesa que falla inmediatamente.
+                // Esto simula que el servicio local no fue encontrado.
+                return Promise.reject(new Error('Llamada a red local bloqueada por el proxy.'));
+            }
+            // Para cualquier otra URL, usar el fetch original.
+            return originalFetch.apply(this, args);
+        };
+        // --- FIN CÓDIGO AÑADIDO PARA BLOQUEAR LLAMADA LOCAL ---
         function ajustarKiosco(){
             if(!document.querySelector('meta[name=viewport]')){
                 var meta = document.createElement('meta');
