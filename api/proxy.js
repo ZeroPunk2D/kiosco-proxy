@@ -37,13 +37,25 @@ export default async function handler(request, response) {
         window.fetch = function(...args) {
             const url = args[0];
             if (typeof url === 'string' && url.includes('http://localhost:9000/api/empresa')) {
-                console.log('Bloqueando llamada a la red local:', url);
-                // Devolver una promesa que falla inmediatamente.
-                // Esto simula que el servicio local no fue encontrado.
+                console.log('Bloqueando fetch() a la red local:', url);
                 return Promise.reject(new Error('Llamada a red local bloqueada por el proxy.'));
             }
-            // Para cualquier otra URL, usar el fetch original.
             return originalFetch.apply(this, args);
+        };
+
+        const originalXhrOpen = XMLHttpRequest.prototype.open;
+        const originalXhrSend = XMLHttpRequest.prototype.send;
+        XMLHttpRequest.prototype.open = function(method, url, ...args) {
+            this._targetUrl = url;
+            return originalXhrOpen.apply(this, [method, url, ...args]);
+        };
+        XMLHttpRequest.prototype.send = function(...args) {
+            if (typeof this._targetUrl === 'string' && this._targetUrl.includes('http://localhost:9000/api/empresa')) {
+                console.log('Bloqueando XMLHttpRequest.send() a la red local:', this._targetUrl);
+                this.dispatchEvent(new ProgressEvent('error'));
+                return;
+            }
+            return originalXhrSend.apply(this, args);
         };
         // --- FIN CÓDIGO AÑADIDO PARA BLOQUEAR LLAMADA LOCAL ---
         function ajustarKiosco(){
