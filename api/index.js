@@ -49,11 +49,9 @@ export default async function handler(request, response) {
             .header {
                 margin-bottom: 30px;
             }
-            .logo-text {
-                font-size: 2.8em;
-                font-weight: 700;
-                color: #1877f2; /* A modern blue */
-                margin-bottom: 5px;
+            .header img {
+                height: 80px; /* Adjust height as needed */
+                margin-bottom: 10px;
             }
             .subtitle {
                 font-size: 1.5em;
@@ -91,8 +89,8 @@ export default async function handler(request, response) {
     <body>
         <div class="container">
             <div class="header">
-                <div class="logo-text">Olin Mixtli</div>
-                <div class="subtitle">Apliacion Kiosco mobil</div>
+                <img src="/logo.png" alt="Olin Mixtli Logo">
+                <div class="subtitle">Aplicación Kiosco Mobil</div>
             </div>
 
             <div class="download-buttons">
@@ -101,11 +99,6 @@ export default async function handler(request, response) {
             </div>
 
             <div class="footer">
-                <pre style="font-size: 10px; text-align: left; background-color: #eee; padding: 5px; border-radius: 4px; word-wrap: break-word;">
-DEBUG INFO:
-iosLink: ${iosLink}
-androidLink: ${androidLink}
-                </pre>
                 &copy; ${new Date().getFullYear()} Olin Mixtli
             </div>
         </div>
