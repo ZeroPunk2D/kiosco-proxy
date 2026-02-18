@@ -101,6 +101,11 @@ export default async function handler(request, response) {
             </div>
 
             <div class="footer">
+                <pre style="font-size: 10px; text-align: left; background-color: #eee; padding: 5px; border-radius: 4px; word-wrap: break-word;">
+DEBUG INFO:
+iosLink: ${iosLink}
+androidLink: ${androidLink}
+                </pre>
                 &copy; ${new Date().getFullYear()} Olin Mixtli
             </div>
         </div>
