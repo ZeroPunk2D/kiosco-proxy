@@ -4,5 +4,8 @@
             "memory": 128,
             "maxDuration": 59
         }
-    }
+    },
+    "rewrites": [
+        { "source": "/api", "destination": "/api/index" }
+    ]
 }

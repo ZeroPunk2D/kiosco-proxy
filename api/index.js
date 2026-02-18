@@ -92,7 +92,7 @@ export default async function handler(request, response) {
         <div class="container">
             <div class="header">
                 <div class="logo-text">Olin Mixtli</div>
-                <div class="subtitle">Kiosco</div>
+                <div class="subtitle">Apliacion Kiosco mobil</div>
             </div>
 
             <div class="download-buttons">

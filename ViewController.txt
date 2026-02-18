@@ -127,26 +127,15 @@ class ViewController: UIViewController, WKNavigationDelegate, WKUIDelegate {
     // MARK: - QR Flow
 
     @objc func mostrarQR() {
-        guard let urlActual = webView.url?.absoluteString else {
-            let alert = UIAlertController(title: "QR", message: "No hay página cargada aún", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-
-        let urlTraductor = "https://kiosco-proxy.vercel.app/api/proxy"
-        
-        guard let urlActualCodificada = urlActual.addingPercentEncoding(withAllowedCharacters: .urlQueryAllowed) else {
-            let alert = UIAlertController(title: "Error QR", message: "No se pudo codificar la URL.", preferredStyle: .alert)
-            alert.addAction(UIAlertAction(title: "OK", style: .default))
-            present(alert, animated: true)
-            return
-        }
-
-        let urlParaQR = "\(urlTraductor)?target=\(urlActualCodificada)"
+        // La URL de tu API de Vercel que muestra la página de descarga.
+        let urlParaQR = "https://kiosco-olin-mixtli.vercel.app/api"
 
         if let qrImage = generarQR(texto: urlParaQR) {
             mostrarQRPopup(imagen: qrImage)
+        } else {
+            let alert = UIAlertController(title: "Error QR", message: "No se pudo generar el código QR.", preferredStyle: .alert)
+            alert.addAction(UIAlertAction(title: "OK", style: .default))
+            present(alert, animated: true)
         }
     }
 
