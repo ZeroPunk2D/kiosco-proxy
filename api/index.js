@@ -18,7 +18,6 @@ export default async function handler(request, response) {
 
   const androidLink = config.androidLink || '#';
   const iosLink = config.iosLink || '#';
-
 const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -44,113 +43,111 @@ body{
     radial-gradient(circle at 20% 30%, rgba(0,140,255,.3), transparent 40%),
     radial-gradient(circle at 80% 70%, rgba(255,0,60,.3), transparent 40%),
     #0a0f1c;
-  color:white;
   overflow:hidden;
 }
 
+/* CONTENEDOR */
 .container{
   width:95%;
-  max-width:500px;
-  padding:40px;
+  max-width:520px;
+  padding:50px 40px;
   border-radius:20px;
-  backdrop-filter: blur(20px);
-  background: rgba(15,20,35,0.85);
-  border:1px solid rgba(255,255,255,0.1);
-  box-shadow: 0 0 40px rgba(0,140,255,0.3);
+  background: rgba(255,255,255,0.95);
+  box-shadow: 0 0 40px rgba(0,0,0,0.4);
   text-align:center;
-  position:relative;
 }
 
-.container::before{
-  content:'';
-  position:absolute;
-  inset:-2px;
-  border-radius:20px;
-  background:linear-gradient(45deg,#00b3ff,#ff003c);
-  z-index:-1;
-  filter:blur(15px);
-  opacity:.6;
-}
-
+/* LOGO */
 .header img{
-  height:90px;
-  margin-bottom:15px;
-  filter: drop-shadow(0 0 10px rgba(255,0,60,.7));
+  width:140px;
+  margin-bottom:20px;
+  padding:10px;
+  background:white;
+  border-radius:20px;
+  border:3px solid black;
+  box-shadow:0 0 15px rgba(0,0,0,0.4);
 }
 
+/* TITULO */
 .title{
-  font-size:28px;
-  font-weight:700;
+  font-size:32px;
+  font-weight:900;
   margin-bottom:10px;
-  background: linear-gradient(90deg,#ffffff,#ff003c);
-  -webkit-background-clip:text;
-  -webkit-text-fill-color:transparent;
+  color:black;
+  text-shadow:
+    0 0 5px #fff,
+    0 0 15px #fff,
+    0 0 25px #fff;
 }
 
 .subtitle{
-  font-size:15px;
-  color:#b0b8d1;
-  margin-bottom:30px;
-  letter-spacing:1px;
+  font-size:16px;
+  color:black;
+  margin-bottom:35px;
+  font-weight:600;
 }
 
+/* AREA BOTONES */
 .download-buttons{
   display:flex;
   flex-direction:column;
   gap:20px;
+  padding:25px;
+  background:black;
+  border-radius:20px;
 }
 
+/* BOTONES BASE */
 .download-button{
-  padding:16px;
+  padding:18px;
   border-radius:12px;
   text-decoration:none;
-  font-weight:700;
-  font-size:16px;
+  font-weight:800;
+  font-size:17px;
   letter-spacing:.5px;
   transition:.3s ease;
-  position:relative;
-  overflow:hidden;
+  display:block;
 }
 
-.download-button::before{
-  content:'';
-  position:absolute;
-  top:0;
-  left:-100%;
-  width:100%;
-  height:100%;
-  background:linear-gradient(120deg,transparent,rgba(255,255,255,.4),transparent);
-  transition:.5s;
-}
-
-.download-button:hover::before{
-  left:100%;
-}
-
+/* IPHONE BLANCO NEON */
 .ios{
-  background:linear-gradient(45deg,#1e90ff,#0066ff);
-  box-shadow:0 0 20px rgba(0,140,255,.6);
+  background:white;
+  color:black;
+  box-shadow:
+    0 0 10px #fff,
+    0 0 20px #fff,
+    0 0 40px #fff;
 }
 
+.ios:hover{
+  transform:scale(1.05);
+}
+
+/* ANDROID VERDE NEON */
 .android{
-  background:linear-gradient(45deg,#ff003c,#c4002f);
-  box-shadow:0 0 20px rgba(255,0,60,.6);
+  background:#00ff66;
+  color:black;
+  box-shadow:
+    0 0 10px #00ff66,
+    0 0 25px #00ff66,
+    0 0 50px #00ff66;
 }
 
-.download-button:hover{
-  transform:translateY(-3px);
+.android:hover{
+  transform:scale(1.05);
 }
 
+/* FOOTER */
 .footer{
-  margin-top:35px;
-  font-size:12px;
-  color:#6c7a99;
-  letter-spacing:1px;
+  margin-top:30px;
+  font-size:13px;
+  color:black;
+  font-weight:600;
 }
 
 @media(max-width:480px){
   .container{
-    padding:30px 20px;
+    padding:35px 20px;
   }
 }
 </style>
@@ -168,11 +165,11 @@ body{
 
   <div class="download-buttons">
     <a href="${iosLink}" class="download-button ios">
-       Descargar para iPhone
+       Descargar para iPhone
     </a>
 
     <a href="${androidLink}" class="download-button android">
-      🤖 Descargar para Android
+       Descargar para Android
     </a>
   </div>
 
