@@ -40,59 +40,79 @@ body{
   align-items:center;
   justify-content:center;
   background:
-    radial-gradient(circle at 20% 30%, rgba(0,140,255,.3), transparent 40%),
-    radial-gradient(circle at 80% 70%, rgba(255,0,60,.3), transparent 40%),
+    radial-gradient(circle at 20% 30%, rgba(255,0,0,.3), transparent 50%),
+    radial-gradient(circle at 80% 70%, rgba(255,255,255,.4), transparent 50%),
     #0a0f1c;
+}
+
+/* CONTENEDOR CON EFECTO BLANCO + ROJO */
+.container{
+  width:95%;
+  max-width:540px;
+  padding:60px 45px;
+  border-radius:25px;
+  background: linear-gradient(135deg, #ffffff 60%, #ffebeb 100%);
+  box-shadow:
+    0 0 20px rgba(255,0,0,0.4),
+    0 0 60px rgba(255,0,0,0.3);
+  text-align:center;
+  position:relative;
   overflow:hidden;
 }
 
-/* CONTENEDOR */
-.container{
-  width:95%;
-  max-width:520px;
-  padding:50px 40px;
-  border-radius:20px;
-  background: rgba(255,255,255,0.95);
-  box-shadow: 0 0 40px rgba(0,0,0,0.4);
-  text-align:center;
+/* EFECTO ROJO SUTIL INTERNO */
+.container::before{
+  content:"";
+  position:absolute;
+  width:300px;
+  height:300px;
+  background:radial-gradient(circle, rgba(255,0,0,0.4), transparent 70%);
+  top:-80px;
+  right:-80px;
+  z-index:0;
 }
 
-/* LOGO */
+.container > *{
+  position:relative;
+  z-index:1;
+}
+
+/* LOGO MÁS GRANDE */
 .header img{
-  width:140px;
-  margin-bottom:20px;
-  padding:10px;
+  width:200px; /* 🔥 MÁS GRANDE */
+  margin-bottom:25px;
+  padding:15px;
   background:white;
-  border-radius:20px;
-  border:3px solid black;
-  box-shadow:0 0 15px rgba(0,0,0,0.4);
+  border-radius:25px;
+  border:4px solid black;
+  box-shadow:
+    0 0 20px rgba(0,0,0,0.5);
 }
 
 /* TITULO */
 .title{
-  font-size:32px;
+  font-size:34px;
   font-weight:900;
-  margin-bottom:10px;
+  margin-bottom:12px;
   color:black;
   text-shadow:
-    0 0 5px #fff,
-    0 0 15px #fff,
-    0 0 25px #fff;
+    0 0 8px #fff,
+    0 0 20px #fff;
 }
 
 .subtitle{
-  font-size:16px;
+  font-size:17px;
   color:black;
-  margin-bottom:35px;
-  font-weight:600;
+  margin-bottom:40px;
+  font-weight:700;
 }
 
-/* AREA BOTONES */
+/* AREA BOTONES NEGRA */
 .download-buttons{
   display:flex;
   flex-direction:column;
   gap:20px;
-  padding:25px;
+  padding:30px;
   background:black;
   border-radius:20px;
 }
@@ -100,11 +120,10 @@ body{
 /* BOTONES BASE */
 .download-button{
   padding:18px;
-  border-radius:12px;
+  border-radius:14px;
   text-decoration:none;
   font-weight:800;
   font-size:17px;
-  letter-spacing:.5px;
   transition:.3s ease;
   display:block;
 }
@@ -114,13 +133,13 @@ body{
   background:white;
   color:black;
   box-shadow:
-    0 0 10px #fff,
-    0 0 20px #fff,
-    0 0 40px #fff;
+    0 0 15px #fff,
+    0 0 30px #fff,
+    0 0 60px #fff;
 }
 
 .ios:hover{
-  transform:scale(1.05);
+  transform:scale(1.06);
 }
 
 /* ANDROID VERDE NEON */
@@ -128,26 +147,26 @@ body{
   background:#00ff66;
   color:black;
   box-shadow:
-    0 0 10px #00ff66,
-    0 0 25px #00ff66,
-    0 0 50px #00ff66;
+    0 0 15px #00ff66,
+    0 0 35px #00ff66,
+    0 0 70px #00ff66;
 }
 
 .android:hover{
-  transform:scale(1.05);
+  transform:scale(1.06);
 }
 
 /* FOOTER */
 .footer{
-  margin-top:30px;
-  font-size:13px;
+  margin-top:35px;
+  font-size:14px;
   color:black;
-  font-weight:600;
+  font-weight:700;
 }
 
 @media(max-width:480px){
-  .container{
-    padding:35px 20px;
+  .header img{
+    width:160px;
   }
 }
 </style>
