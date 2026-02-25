@@ -28,33 +28,6 @@ const htmlContent = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Descarga Kiosco Olin Mixtli</title>
 
-<style>
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-}
-
-body{
-  font-family: 'Segoe UI', sans-serif;
-  min-height:100vh;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  background:
-    radial-gradient(circle at 20% 30%, rgba(255,0,0,.3), transparent 50%),
-    radial-gradient(circle at 80% 70%, rgba(255,255,255,.4), transparent 50%),
-    #0a0f1c;
-}
-
-const htmlContent = `
-<!DOCTYPE html>
-<html lang="es">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Descarga Kiosco Olin Mixtli</title>
-
 <!-- Fuente llamativa -->
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
 
