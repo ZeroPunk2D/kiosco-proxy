@@ -18,6 +18,8 @@ export default async function handler(request, response) {
 
   const androidLink = config.androidLink || '#';
   const iosLink = config.iosLink || '#';
+
+
 const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
@@ -45,27 +47,27 @@ body{
     #0a0f1c;
 }
 
-/* CONTENEDOR CON EFECTO BLANCO + ROJO */
+/* CONTENEDOR */
 .container{
   width:95%;
-  max-width:540px;
+  max-width:560px;
   padding:60px 45px;
   border-radius:25px;
-  background: linear-gradient(135deg, #ffffff 60%, #ffebeb 100%);
+  background: linear-gradient(135deg, #ffffff 60%, #ffe5e5 100%);
   box-shadow:
-    0 0 20px rgba(255,0,0,0.4),
-    0 0 60px rgba(255,0,0,0.3);
+    0 0 25px rgba(255,0,0,0.4),
+    0 0 70px rgba(255,0,0,0.3);
   text-align:center;
   position:relative;
   overflow:hidden;
 }
 
-/* EFECTO ROJO SUTIL INTERNO */
+/* EFECTO ROJO INTERNO */
 .container::before{
   content:"";
   position:absolute;
-  width:300px;
-  height:300px;
+  width:320px;
+  height:320px;
   background:radial-gradient(circle, rgba(255,0,0,0.4), transparent 70%);
   top:-80px;
   right:-80px;
@@ -77,33 +79,34 @@ body{
   z-index:1;
 }
 
-/* LOGO MÁS GRANDE */
+/* LOGO GRANDE */
 .header img{
-  width:340px; /* 🔥 MÁS GRANDE */
-  margin-bottom:25px;
+  width:260px;
+  max-width:90%;
+  margin-bottom:30px;
   padding:15px;
   background:white;
   border-radius:25px;
   border:4px solid black;
-  box-shadow:
-    0 0 20px rgba(0,0,0,0.5);
+  box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
-/* TITULO */
+/* TITULO GRANDE ADAPTABLE */
 .title{
-  font-size:34px;
+  font-size: clamp(42px, 6vw, 60px);
   font-weight:900;
-  margin-bottom:12px;
+  margin-bottom:15px;
   color:black;
+  letter-spacing:2px;
   text-shadow:
     0 0 8px #fff,
     0 0 20px #fff;
 }
 
 .subtitle{
-  font-size:17px;
+  font-size:18px;
   color:black;
-  margin-bottom:40px;
+  margin-bottom:45px;
   font-weight:700;
 }
 
@@ -111,7 +114,7 @@ body{
 .download-buttons{
   display:flex;
   flex-direction:column;
-  gap:20px;
+  gap:22px;
   padding:30px;
   background:black;
   border-radius:20px;
@@ -123,7 +126,7 @@ body{
   border-radius:14px;
   text-decoration:none;
   font-weight:800;
-  font-size:17px;
+  font-size:18px;
   transition:.3s ease;
   display:block;
 }
@@ -158,15 +161,15 @@ body{
 
 /* FOOTER */
 .footer{
-  margin-top:35px;
-  font-size:14px;
+  margin-top:40px;
+  font-size:15px;
   color:black;
   font-weight:700;
 }
 
 @media(max-width:480px){
   .header img{
-    width:160px;
+    width:200px;
   }
 }
 </style>
@@ -183,17 +186,17 @@ body{
   <div class="subtitle">Descarga Oficial Olin Mixtli</div>
 
   <div class="download-buttons">
-    <a href="${iosLink}" class="download-button ios">
+    <a href="\${iosLink}" class="download-button ios">
        Descargar para iPhone
     </a>
 
-    <a href="${androidLink}" class="download-button android">
+    <a href="\${androidLink}" class="download-button android">
        Descargar para Android
     </a>
   </div>
 
   <div class="footer">
-    © ${new Date().getFullYear()} Olin Mixtli · Rápido · Seguro · Moderno
+    © \${new Date().getFullYear()} Olin Mixtli · Rápido · Seguro · Moderno
   </div>
 
 </div>
