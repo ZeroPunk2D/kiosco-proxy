@@ -79,7 +79,7 @@ body{
   z-index:1;
 }
 
-/* LOGO GRANDE */
+/* LOGO */
 .header img{
   width:260px;
   max-width:90%;
@@ -91,7 +91,7 @@ body{
   box-shadow:0 0 20px rgba(0,0,0,0.5);
 }
 
-/* TITULO GRANDE ADAPTABLE */
+/* TITULO */
 .title{
   font-size: clamp(42px, 6vw, 60px);
   font-weight:900;
@@ -122,16 +122,16 @@ body{
 
 /* BOTONES BASE */
 .download-button{
-  padding:18px;
+  width:100%;
+  height:60px;                /* 🔥 ALTURA FIJA */
+  display:flex;               /* 🔥 CENTRADO PERFECTO */
+  align-items:center;
+  justify-content:center;
   border-radius:14px;
   text-decoration:none;
   font-weight:800;
   font-size:18px;
   transition:.3s ease;
-  display:flex;              /* 👈 CAMBIO */
-  align-items:center;        /* 👈 */
-  justify-content:center;    /* 👈 */
-  height:60px;               /* 👈 ALTURA FIJA */
 }
 
 /* IPHONE BLANCO NEON */
@@ -145,7 +145,7 @@ body{
 }
 
 .ios:hover{
-  transform:scale(1.06);
+  transform:scale(1.05);
 }
 
 /* ANDROID VERDE NEON */
@@ -159,7 +159,7 @@ body{
 }
 
 .android:hover{
-  transform:scale(1.06);
+  transform:scale(1.05);
 }
 
 /* FOOTER */
@@ -190,11 +190,11 @@ body{
 
   <div class="download-buttons">
     <a href="\${iosLink}" class="download-button ios">
-       Descargar para iPhone
+       Descargar para iPhone
     </a>
 
     <a href="\${androidLink}" class="download-button android">
-       Descargar para Android
+      🤖 Descargar para Android
     </a>
   </div>
 
