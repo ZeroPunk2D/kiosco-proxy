@@ -3,13 +3,13 @@ import path from 'path';
 
 export default async function handler(request, response) {
   let config;
+
   try {
     const configPath = path.resolve(process.cwd(), 'config.json');
     const configFile = await fs.promises.readFile(configPath, 'utf8');
     config = JSON.parse(configFile);
   } catch (error) {
     console.error("Error reading config.json:", error);
-    // Fallback config if file is missing
     config = {
       androidLink: "#",
       iosLink: "#"
@@ -19,8 +19,7 @@ export default async function handler(request, response) {
   const androidLink = config.androidLink || '#';
   const iosLink = config.iosLink || '#';
 
-
-const htmlContent = `
+  const htmlContent = `
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -28,7 +27,6 @@ const htmlContent = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Descarga Kiosco Olin Mixtli</title>
 
-<!-- NUEVA FUENTE PRO -->
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
 
 <style>
@@ -50,7 +48,6 @@ body{
     #0a0f1c;
 }
 
-/* CONTENEDOR MÁS COMPACTO */
 .container{
   width:90%;
   max-width:500px;
@@ -65,7 +62,6 @@ body{
   overflow:hidden;
 }
 
-/* EFECTO ROJO */
 .container::before{
   content:"";
   position:absolute;
@@ -82,7 +78,6 @@ body{
   z-index:1;
 }
 
-/* LOGO */
 .header img{
   width:250px;
   max-width:90%;
@@ -94,7 +89,6 @@ body{
   box-shadow:0 0 25px rgba(0,0,0,0.5);
 }
 
-/* TITULO MÁS MODERNO */
 .title{
   font-family: 'Poppins', sans-serif;
   font-size: clamp(40px, 6vw, 58px);
@@ -114,7 +108,6 @@ body{
   font-weight:700;
 }
 
-/* AREA BOTONES */
 .download-buttons{
   display:flex;
   flex-direction:column;
@@ -124,7 +117,6 @@ body{
   border-radius:20px;
 }
 
-/* BOTONES */
 .download-button{
   width:100%;
   height:58px;
@@ -138,7 +130,6 @@ body{
   transition:.3s ease;
 }
 
-/* IPHONE */
 .ios{
   background:white;
   color:black;
@@ -152,7 +143,6 @@ body{
   transform:scale(1.05);
 }
 
-/* ANDROID */
 .android{
   background:#00ff66;
   color:black;
@@ -166,7 +156,6 @@ body{
   transform:scale(1.05);
 }
 
-/* FOOTER */
 .footer{
   margin-top:35px;
   font-size:14px;
@@ -189,21 +178,21 @@ body{
     <img src="/logo.png" alt="Olin Mixtli Logo">
   </div>
 
-  <div class="title">KIOSCO MÓVIL</div>
+  <div class="title">KIOSCO MOVIL</div>
   <div class="subtitle">Descarga Oficial Olin Mixtli</div>
 
   <div class="download-buttons">
-    <a href="\${iosLink}" class="download-button ios">
+    <a href="${iosLink}" class="download-button ios">
        Descargar para iPhone
     </a>
 
-    <a href="\${androidLink}" class="download-button android">
+    <a href="${androidLink}" class="download-button android">
        Descargar para Android
     </a>
   </div>
 
   <div class="footer">
-    ©2026. Olin Mixtli · Rápido · Seguro · Moderno
+    © 2026. Olin Mixtli · Rápido · Seguro · Moderno
   </div>
 
 </div>
