@@ -128,7 +128,10 @@ body{
   font-weight:800;
   font-size:18px;
   transition:.3s ease;
-  display:block;
+  display:flex;              /* 👈 CAMBIO */
+  align-items:center;        /* 👈 */
+  justify-content:center;    /* 👈 */
+  height:60px;               /* 👈 ALTURA FIJA */
 }
 
 /* IPHONE BLANCO NEON */
