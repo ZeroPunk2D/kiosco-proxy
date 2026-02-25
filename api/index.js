@@ -79,7 +79,7 @@ body{
 
 /* LOGO MÁS GRANDE */
 .header img{
-  width:200px; /* 🔥 MÁS GRANDE */
+  width:260px; /* 🔥 MÁS GRANDE */
   margin-bottom:25px;
   padding:15px;
   background:white;
