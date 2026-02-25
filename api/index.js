@@ -90,7 +90,7 @@ export default async function handler(request, response) {
         <div class="container">
             <div class="header">
                 <img src="/logo.png" alt="Olin Mixtli Logo">
-                <div class="subtitle">Aplicación Kiosco Mobil</div>
+                <div class="subtitle">Aplicación Kiosco Movil</div>
             </div>
 
             <div class="download-buttons">
