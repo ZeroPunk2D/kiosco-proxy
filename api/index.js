@@ -28,8 +28,8 @@ const htmlContent = `
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Descarga Kiosco Olin Mixtli</title>
 
-<!-- Fuente llamativa -->
-<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;900&display=swap" rel="stylesheet">
+<!-- NUEVA FUENTE PRO -->
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@700;900&display=swap" rel="stylesheet">
 
 <style>
 *{
@@ -53,8 +53,8 @@ body{
 /* CONTENEDOR MÁS COMPACTO */
 .container{
   width:90%;
-  max-width:500px; /* 🔥 más pequeño */
-  padding:50px 35px; /* 🔥 menos largo */
+  max-width:500px;
+  padding:50px 35px;
   border-radius:25px;
   background: linear-gradient(135deg, #ffffff 55%, #ffd6d6 100%);
   box-shadow:
@@ -65,7 +65,7 @@ body{
   overflow:hidden;
 }
 
-/* EFECTO ROJO MÁS VISIBLE */
+/* EFECTO ROJO */
 .container::before{
   content:"";
   position:absolute;
@@ -94,17 +94,17 @@ body{
   box-shadow:0 0 25px rgba(0,0,0,0.5);
 }
 
-/* TITULO NUEVA FUENTE PRO */
+/* TITULO MÁS MODERNO */
 .title{
-  font-family: 'Orbitron', sans-serif; /* 🔥 nueva fuente */
+  font-family: 'Poppins', sans-serif;
   font-size: clamp(40px, 6vw, 58px);
   font-weight:900;
   margin-bottom:15px;
   color:black;
-  letter-spacing:4px;
+  letter-spacing:2px;
   text-shadow:
-    0 0 10px #ffffff,
-    0 0 25px rgba(255,0,0,0.7);
+    0 0 8px #ffffff,
+    0 0 20px rgba(255,0,0,0.6);
 }
 
 .subtitle{
@@ -114,7 +114,7 @@ body{
   font-weight:700;
 }
 
-/* AREA BOTONES NEGRA */
+/* AREA BOTONES */
 .download-buttons{
   display:flex;
   flex-direction:column;
@@ -138,7 +138,7 @@ body{
   transition:.3s ease;
 }
 
-/* IPHONE BLANCO NEON */
+/* IPHONE */
 .ios{
   background:white;
   color:black;
@@ -152,7 +152,7 @@ body{
   transform:scale(1.05);
 }
 
-/* ANDROID VERDE NEON */
+/* ANDROID */
 .android{
   background:#00ff66;
   color:black;
@@ -203,7 +203,7 @@ body{
   </div>
 
   <div class="footer">
-    © 2026. Olin Mixtli · Rápido · Seguro · Moderno
+    ©2026. Olin Mixtli · Rápido · Seguro · Moderno
   </div>
 
 </div>
