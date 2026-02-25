@@ -190,16 +190,16 @@ body{
 
   <div class="download-buttons">
     <a href="\${iosLink}" class="download-button ios">
-       Descargar para iPhone
+       Descargar para iPhone
     </a>
 
     <a href="\${androidLink}" class="download-button android">
-      🤖 Descargar para Android
+       Descargar para Android
     </a>
   </div>
 
   <div class="footer">
-    © \${new Date().getFullYear()} Olin Mixtli · Rápido · Seguro · Moderno
+    © 2026.Olin Mixtli · Rápido · Seguro · Moderno
   </div>
 
 </div>
